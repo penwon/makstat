@@ -15,6 +15,11 @@ EOF;
 //подгружаем библиотеку функций
 require_once("funcs.php");
 header('Content-Type: text/html; charset=utf-8'); 
+
+//соединяемся с БД
+require_once("config.php");
+selectBD();
+
 printHTMLHead("Страница авторизации");
 if (isAuthorised()){
 	$user=$_COOKIE['sanLogin'];
@@ -35,9 +40,6 @@ if (isset($_GET['enter']) && ($_GET['enter']=="1")){
 	$pass = substr($_POST["pass"],0,32);
 	$pass = htmlspecialchars(stripslashes($pass));
 	if ((!empty($name)) && (!empty($pass))){
-		//соединяемся с БД
-		require_once("config.php");
-		selectBD();
 		$query = "SELECT * FROM users WHERE name = '$name'";
 		$res = mysql_query($query);
 		if ($res){
