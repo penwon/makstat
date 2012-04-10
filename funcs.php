@@ -226,6 +226,7 @@ function showAddNumsForm($group_id)
 	Добавление данных в группу <font color="green"><b>"$name"</b></font><br/>
 	какая то форма для группы с id = $group_id
 EOF;
+	//mys
 }
 
 

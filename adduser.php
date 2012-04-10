@@ -6,12 +6,98 @@
 		$passw = (empty($_POST['pass'])) ? 'Пароль':$_POST['pass'];
 		$passw2 = (empty($_POST['pass2'])) ? 'Пароль':$_POST['pass2'];
 		echo <<<EOF
+		<script type="text/javascript">
+			var ajax=null;
+			var text="";
+			
+			function blured(textField){
+				if (textField.value==""){
+					textField.value=text;
+				}
+			}
+			
+			function getAjax(){
+				var xmlHttp = false;
+				/*@cc_on @*/
+				/*@if (@_jscript_version >= 5)
+				try {
+				  xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+				} catch (e) {
+				  try {
+					xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+				  } catch (e2) {
+					xmlHttp = false;
+				  }
+				}
+				@end @*/
+
+				if (!xmlHttp && typeof XMLHttpRequest != 'undefined') {
+				  xmlHttp = new XMLHttpRequest();
+				}
+				if (xmlHttp!=false)
+					return xmlHttp;
+				return null;
+			}
+			
+			function updatePage(){
+				if (ajax.readyState == 4) {
+					if (ajax.status == 200) {
+						var response = ajax.responseText;
+						document.getElementById("result").innerHTML = response;
+					}
+				}
+			}
+			
+			function sendData(){
+				var params = "submitted=true&";
+				ajax=getAjax();
+				if (ajax!=null)
+				{
+					var paramName = "name";
+					var userName = document.getElementsByName(paramName)[0].value;
+					if (userName=="Имя пользователя")
+					{
+						alert("Необходимо ввести имя пользователя!");
+						return;
+					}
+					params+=paramName + "=" + encodeURIComponent(userName) + "&";
+					paramName = "pass";
+					var pass = document.getElementsByName(paramName)[0].value;
+					params+=paramName + "=" + encodeURIComponent(pass) + "&";
+					paramName = "pass2"
+					var pass2 = document.getElementsByName(paramName)[0].value;
+					params+=paramName + "=" + encodeURIComponent(pass2);
+					if (pass!=pass2)
+					{
+						alert("Пароль и подтверждение пароля не совпадают. Проверьте правильность ввода!");
+						return;
+					}
+					if (pass== "Пароль")
+					{
+						alert("Необходимо ввести пароль!");
+						return;
+					}
+					//Открыть соединение с сервером
+					ajax.open("POST", "$script", true);
+					ajax.setRequestHeader("Content-type", 
+					"application/x-www-form-urlencoded;");
+					ajax.setRequestHeader("Content-length", params.length);
+					ajax.setRequestHeader("Connection", "close"); 
+					//Установить функцию для сервера, которая выполнится после его ответа
+					ajax.onreadystatechange = updatePage;
+	
+					//Передать запрос
+					ajax.send(params);
+				}
+			}
+		</script>
+		<div id="result" style=""></div>
 		<form action="$script" method="POST">
 			<table>
-				<tr><td>Логин:</td><td><input type="text" value="$login" name="name" size="10" onClick="this.value='';"></td></tr>
-				<tr><td>Пароль:</td><td><input type="password" value="$passw" name="pass" size="10" onClick="this.value='';"></td></tr>
-				<tr><td>Подтверждение:</td><td><input type="password" value="$passw2" name="pass2" size="10" onClick="this.value='';"></td><tr/>
-				<tr><td colspan="2"><input type="submit" value="Добавить"></td></tr>
+				<tr><td>Логин:</td><td><input type="text" value="$login" name="name" size="10" onBlur="blured(this);" onFocus="text=this.value; this.value='';"></td></tr>
+				<tr><td>Пароль:</td><td><input type="password" value="$passw" name="pass" size="10" onBlur="blured(this);" onFocus="text=this.value; this.value='';"></td></tr>
+				<tr><td>Подтверждение:</td><td><input type="password" value="$passw2" name="pass2" size="10" onBlur="blured(this);" onFocus="text=this.value; this.value='';"></td><tr/>
+				<tr><td colspan="2"><input type="button" value="Добавить" onClick="sendData();"></td></tr>
 			</table>
 		</form>		
 EOF;
@@ -21,24 +107,18 @@ EOF;
 	require_once("funcs.php");
 	header('Content-Type: text/html; charset=utf-8'); 
 	
-	printHTMLHead("Добавление пользователя");
-	echo "<b>Добавление пользователя</b><br/>";
 	//соединяемся с БД
 	require_once("config.php");
 	selectBD();
 	
 	if (isAdmin()){
-		if (!empty($_POST['name']) && (!empty($_POST['pass'])) && (!empty($_POST['pass2'])) && ($_POST['name']!="Имя пользователя") && ($_POST['pass']!="Пароль")){
-				
+		if (isset($_POST['submitted'])){
 				//проверяем введенные данные
-				$name = substr($_POST["name"],0,32);
-				$name = htmlspecialchars(stripslashes($name));
-				$pass = substr($_POST["pass"],0,32);
-				$pass = htmlspecialchars(stripslashes($pass));
-				$pass2 = substr($_POST["pass2"],0,32);
-				$pass2 = htmlspecialchars(stripslashes($pass2));
+				$name = checkStr($_POST["name"]);
+				$pass = checkStr($_POST["pass"]);
+				$pass2 = checkStr($_POST["pass2"]);
 				
-				if ((!empty($name)) && (!empty($pass)) && (!empty($pass2)) && ($pass==$pass2)){					
+				if ((!empty($name)) && (!empty($pass)) && ($pass==$pass2)){					
 					//проверяем, есть ли уже такой пользователь в БД
 					$query = "SELECT * FROM users WHERE name = '$name'";
 					$res = mysql_query($query) or printBDError("Ошибка при обращении к таблице users");
@@ -59,22 +139,21 @@ EOF;
 						echo <<<EOF
 						Пользователь <font color="blue"><b>$name</b></font> уже существует. Введите другое имя.
 EOF;
-						showAddUserForm();
 					}
 				}
 				else{
 					echo <<<EOF
 					1)Имя пользователя и пароль не должны быть пустыми!<br/>
-					2)Пароль и подтверждение пароля должны совпадать<br/>
+					2)Имя пользователя и пароль должны состоять только из букв и цифр<br/>
+					3)Пароль и подтверждение пароля должны совпадать<br/>
 EOF;
-					showAddUserForm();
 				}
 		}
 		else{
-			echo <<<EOF
-			Введите имя пользователя и пароль<br/>
-EOF;
+			printHTMLHead("Добавление пользователя");
+			echo "<b>Добавление пользователя</b><br/>";
 			showAddUserForm();
+			printHTMLFoot();
 		}
 	}
 	else{
@@ -94,5 +173,4 @@ EOF;
 		}
 		
 	}
-	printHTMLFoot();
 ?>

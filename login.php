@@ -35,10 +35,8 @@ EOF;
 if (isset($_GET['enter']) && ($_GET['enter']=="1")){
 	
 	//проверка введенных данных
-	$name = substr($_POST["name"],0,32);
-	$name = htmlspecialchars(stripslashes($name));
-	$pass = substr($_POST["pass"],0,32);
-	$pass = htmlspecialchars(stripslashes($pass));
+	$name = checkStr($_POST["name"]);
+	$pass = checkStr($_POST["pass"]);
 	if ((!empty($name)) && (!empty($pass))){
 		$query = "SELECT * FROM users WHERE name = '$name'";
 		$res = mysql_query($query);
