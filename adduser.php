@@ -6,39 +6,8 @@
 		$passw = (empty($_POST['pass'])) ? 'Пароль':$_POST['pass'];
 		$passw2 = (empty($_POST['pass2'])) ? 'Пароль':$_POST['pass2'];
 		echo <<<EOF
-		<script type="text/javascript">
-			var ajax=null;
-			var text="";
-			
-			function blured(textField){
-				if (textField.value==""){
-					textField.value=text;
-				}
-			}
-			
-			function getAjax(){
-				var xmlHttp = false;
-				/*@cc_on @*/
-				/*@if (@_jscript_version >= 5)
-				try {
-				  xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-				} catch (e) {
-				  try {
-					xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
-				  } catch (e2) {
-					xmlHttp = false;
-				  }
-				}
-				@end @*/
-
-				if (!xmlHttp && typeof XMLHttpRequest != 'undefined') {
-				  xmlHttp = new XMLHttpRequest();
-				}
-				if (xmlHttp!=false)
-					return xmlHttp;
-				return null;
-			}
-			
+		<script type="text/javascript" src="funcs.js"></script>
+		<script type="text/javascript">			
 			function updatePage(){
 				if (ajax.readyState == 4) {
 					if (ajax.status == 200) {
@@ -94,9 +63,9 @@
 		<div id="result" style=""></div>
 		<form action="$script" method="POST">
 			<table>
-				<tr><td>Логин:</td><td><input type="text" value="$login" name="name" size="10" onBlur="blured(this);" onFocus="text=this.value; this.value='';"></td></tr>
-				<tr><td>Пароль:</td><td><input type="password" value="$passw" name="pass" size="10" onBlur="blured(this);" onFocus="text=this.value; this.value='';"></td></tr>
-				<tr><td>Подтверждение:</td><td><input type="password" value="$passw2" name="pass2" size="10" onBlur="blured(this);" onFocus="text=this.value; this.value='';"></td><tr/>
+				<tr><td>Логин:</td><td><input type="text" value="$login" name="name" size="10" onBlur="blured(this);" onFocus="onFocused(this);"></td></tr>
+				<tr><td>Пароль:</td><td><input type="password" value="$passw" name="pass" size="10" onBlur="blured(this);" onFocus="onFocused(this);"></td></tr>
+				<tr><td>Подтверждение:</td><td><input type="password" value="$passw2" name="pass2" size="10" onBlur="blured(this);" onFocus="onFocused(this);"></td><tr/>
 				<tr><td colspan="2"><input type="button" value="Добавить" onClick="sendData();"></td></tr>
 			</table>
 		</form>		

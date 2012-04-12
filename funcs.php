@@ -125,32 +125,8 @@ function showSelectGroupForm()
 {
 	$script=$_SERVER['SCRIPT_NAME'];
 	echo <<<EOF
-	<script type="text/javascript">
-		var ajax=null;
-		function getAjax()
-		{
-			var xmlHttp = false;
-			/*@cc_on @*/
-			/*@if (@_jscript_version >= 5)
-			try {
-			  xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-			} catch (e) {
-			  try {
-				xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
-			  } catch (e2) {
-				xmlHttp = false;
-			  }
-			}
-			@end @*/
-
-			if (!xmlHttp && typeof XMLHttpRequest != 'undefined') {
-			  xmlHttp = new XMLHttpRequest();
-			}
-			if (xmlHttp!=false)
-				return xmlHttp;
-			return null;
-		}
-		
+	<script type="text/javascript" src="funcs.js"></script>
+	<script type="text/javascript">		
 		function updatePage()
 		{
 			if (ajax.readyState == 4) 

@@ -3,34 +3,9 @@
 	function showAddGroupForm(){
 		$script=$_SERVER['SCRIPT_NAME'];
 		echo <<<EOF
+		<script type="text/javascript" src="funcs.js"></script>
 		<script type="text/javascript">
 		  var fieldsCount=2;
-		  var text="";
-		  
-		  var ajax=null;
-
-			function getAjax(){
-				var xmlHttp = false;
-				/*@cc_on @*/
-				/*@if (@_jscript_version >= 5)
-				try {
-				  xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
-				} catch (e) {
-				  try {
-					xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
-				  } catch (e2) {
-					xmlHttp = false;
-				  }
-				}
-				@end @*/
-
-				if (!xmlHttp && typeof XMLHttpRequest != 'undefined') {
-				  xmlHttp = new XMLHttpRequest();
-				}
-				if (xmlHttp!=false)
-					return xmlHttp;
-				return null;
-			}
 			
 			function updatePage(){
 				if (ajax.readyState == 4) {
@@ -85,12 +60,6 @@
 				}
 			}	
 		   
-		  
-		  function blured(textField){
-			  if (textField.value==""){
-			    textField.value=text;
-			   }
-		  }
 		  function addField(field){
 			  if (fieldsCount<16){
 				  var newField=document.createElement('input');
@@ -98,7 +67,7 @@
 				  newField.size="15";
 				  newField.value="Поле_"+fieldsCount;
 				  newField.name="column"+fieldsCount;
-				  newField.onfocus=function(){text=this.value; this.value='';}
+				  newField.onfocus=function(){onFocused(this);}
 				  newField.onblur=function(){blured(this);}
 				  document.getElementById('fields').appendChild(document.createElement('br'));
 				  document.getElementById('fields').appendChild(newField);
@@ -119,7 +88,7 @@
 		  <table>
 			<tr>
 			 <td>Введите название группы:</td>
-			 <td><input type="text" size="14" name="groupName" value="Название группы" onBlur="blured(this);" onFocus="text=this.value; this.value='';" ></td>
+			 <td><input type="text" size="14" name="groupName" value="Название группы" onBlur="blured(this);" onFocus="onFocused(this);" ></td>
 			</tr>
 			<tr>
 			  <td>Тип данных в группе:</td>
@@ -130,7 +99,7 @@
 		  </table>
 		  <div id="fields">
 		    <b>Поля:</b><br/>
-			<input type="text" size="15" value="Поле_1" name="column1" id="tess" onBlur="blured(this);" onFocus="text=this.value; this.value='';">
+			<input type="text" size="15" value="Поле_1" name="column1" id="tess" onBlur="blured(this);" onFocus="onFocused(this);">
 			<input type="button" onClick="addField(this);" value="Добавить поле">
 			<input type="button" onClick="delField();" value="Удалить поле">
 			<input type="hidden" name="submitted" value="true">
