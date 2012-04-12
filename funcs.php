@@ -120,7 +120,7 @@ function checkRules($id_user, $id_group)
 	return 1;
 }
 
-//Функция выводит форму для выбора таблицы из списка таблиц
+//Функция выводит форму для выбора группы из списка групп
 function showSelectGroupForm()
 {
 	$script=$_SERVER['SCRIPT_NAME'];
@@ -193,7 +193,7 @@ function showSelectGroupForm()
 		}
 	</script>
 	<form>
-		<select onChange="sendGroupId(this);">
+		<select onClick="sendGroupId(this);">
 			<option  selected value="0">Выберите группу</option>
 EOF;
 	$query="SELECT id_group, name FROM groups";
@@ -218,17 +218,25 @@ function getGroupNameById($group_id)
 		return mysql_result($res, 0);
 }
 
-//функция отображает форму для ввода данных
-function showAddNumsForm($group_id)
+//фукнция возвращает имена столбцов в группе массивом
+//только столбцы - поля (все кроме id_rec и day)
+function getGroupFieldNames($name)
 {
-	$name=getGroupNameById($group_id);
-	echo <<<EOF
-	Добавление данных в группу <font color="green"><b>"$name"</b></font><br/>
-	какая то форма для группы с id = $group_id
-EOF;
-	//mys
-}
-
-
-
+	$res = mysql_query("SHOW COLUMNS FROM group_$name");
+	if (!$res)
+	{
+		printBDError("Ошибка при обращении к таблице group_$name");
+	}
+	$countFields = 0;
+	$fieldNames = array();
+	if (mysql_num_rows($res) > 0) {
+		while ($row = mysql_fetch_assoc($res)) {
+			if (($row['Key']=="PRI") || ($row['Field']=="author") || ($row['Field']=="day"))
+				continue;
+			$fieldNames[$countFields] = $row['Field'];
+			$countFields++;
+		}
+	}
+	return $fieldNames;
+}	
 ?>

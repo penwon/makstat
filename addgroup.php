@@ -153,10 +153,9 @@ EOF;
 		
 		if (is_numeric($groupName))	
 			$errStr = "Название группы не должно быть числом. Добавьте буквы!<br/>";
-		//echo $groupName;
 		
-		(isset($_POST['coltype']) && ($_POST['coltype']=="integer"))?$type="INT(10)":$type="DEC(10,2)";
-			
+		//(isset($_POST['coltype']) && ($_POST['coltype']=="integer"))?$type="INT(10)":$type="DEC(10,2)";
+		$type = "DEC(10,2)";	
 		//заполняем массив columns, который будет содержать
 		//имена полей группы данных
 		while ($curField = each($_POST)){
