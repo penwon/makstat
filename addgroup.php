@@ -3,7 +3,7 @@
 	function showAddGroupForm(){
 		$script=$_SERVER['SCRIPT_NAME'];
 		echo <<<EOF
-		<script type="text/javascript" src="funcs.js"></script>
+		<script type="text/javascript" src="js/funcs.js"></script>
 		<script type="text/javascript">
 		  var fieldsCount=2;
 			
@@ -30,7 +30,7 @@
 					}
 					params += paramName + "=" + encodeURIComponent(paramValue) + "&";
 					var paramName = "coltype";
-					var paramValue = document.getElementsByName(paramName)[0].value;
+					paramValue = getRadioGroupValue(document.getElementsByName(paramName));
 					params += paramName + "=" + paramValue;
 					for(var k=1; k<fieldsCount; k++)
 					{
@@ -54,7 +54,7 @@
 					ajax.setRequestHeader("Connection", "close"); 
 				  //Установить функцию для сервера, которая выполнится после его ответа
 				  ajax.onreadystatechange = updatePage;
-
+alert(params);
 				  //Передать запрос
 				  ajax.send(params);
 				}
@@ -84,7 +84,7 @@
 		  }
 		</script>
 		<div id="result" style=""></div>
-		<form action="$script" method="POST">
+		<form action="$script" method="POST" name="addgroup">
 		  <table>
 			<tr>
 			 <td>Введите название группы:</td>
@@ -151,7 +151,7 @@ EOF;
 			echo $msg.$errStr;
 			return;
 		}
-		
+		print_r($_POST);
 		$msg = "<font color=\"red\"><b>Ошибки при создании группы: </b></font></br>";	
 		($_POST['coltype']=="integer")?$type="integer":$type="float";
 		//проверяем, есть ли уже группа с таким названием в БД

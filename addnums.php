@@ -81,6 +81,8 @@ function showAddNumsForm($group_id)
 {
 	$name=getGroupNameById($group_id);
 	echo <<<EOF
+	<script src="js/calendar.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/calendar.css"> 
 	Добавление данных в группу <font color="green"><b>"$name"</b></font><br/>
 	какая то форма для группы с id = $group_id
 EOF;
@@ -89,6 +91,8 @@ EOF;
 	<table border=1px cellspacing=0>
 	  <tr>
 EOF;
+	echo "<th>Дата</th>";
+	
 	$fieldNames=getGroupFieldNames($name);
 	$countFields = count($fieldNames);
 	for ($i = 0; $i < $countFields; $i++)
@@ -96,10 +100,17 @@ EOF;
 		
 	//выводим форму для ввода значений в поля
 	echo "</tr><tr><form>";
+	//сначала поле для ввода даты
+	echo <<<EOF
+	<td>Дата в формате ГГГГ-ММ-ДД: <input type="text" size="10" name="date" onclick="displayDatePicker('date', false, 'ymd', '-');"></td>
+EOF;
+	
+	//потом остальные поля
 	for ($i = 0; $i < $countFields; $i++)
 	{
+		$val = isFieldTypeInt($group_id);
 		echo <<<EOF
-		<td><input type="text" size="10" id="$fieldNames[$i]" value = "$fieldNames[$i]"></td>
+		<td><input type="text" size="10" id="$fieldNames[$i]" value = "$val"></td>
 EOF;
 	}
 	
@@ -110,10 +121,10 @@ EOF;
 	<input type="button" value="Сохранить">
 EOF;
 }
-//функция проверяет отправленный данные и сохраняет их в базу
 
+//функция проверяет отправленный данные и сохраняет их в базу
 function checkFormAndSaveNums()
 {
-		
+	
 }
 ?>

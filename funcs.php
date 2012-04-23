@@ -125,7 +125,8 @@ function showSelectGroupForm()
 {
 	$script=$_SERVER['SCRIPT_NAME'];
 	echo <<<EOF
-	<script type="text/javascript" src="funcs.js"></script>
+	<script type="text/javascript" src="js/calendar.js"></script>
+	<script type="text/javascript" src="js/funcs.js"></script>
 	<script type="text/javascript">		
 		function updatePage()
 		{
@@ -169,7 +170,7 @@ function showSelectGroupForm()
 		}
 	</script>
 	<form>
-		<select onClick="sendGroupId(this);">
+		<select onChange="sendGroupId(this);">
 			<option  selected value="0">Выберите группу</option>
 EOF;
 	$query="SELECT id_group, name FROM groups";
@@ -214,5 +215,15 @@ function getGroupFieldNames($name)
 		}
 	}
 	return $fieldNames;
-}	
+}
+
+//функция возвращает true если в группе хранятся данные целого типа, иначе false
+function isFieldTypeInt($group_id)
+{
+	$query = "SELECT col_type FROM groups WHERE id_group=$group_id";
+	$res = mysql_query($query) or printBDError("Ошибка при обращении к таблице groups");
+	if ((mysql_num_rows($res)>0) && (mysql_result($res, 0)=="integer"))
+		return true;
+	return false;
+}
 ?>

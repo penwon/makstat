@@ -6,7 +6,7 @@
 		$passw = (empty($_POST['pass'])) ? 'Пароль':$_POST['pass'];
 		$passw2 = (empty($_POST['pass2'])) ? 'Пароль':$_POST['pass2'];
 		echo <<<EOF
-		<script type="text/javascript" src="funcs.js"></script>
+		<script type="text/javascript" src="js/funcs.js"></script>
 		<script type="text/javascript">			
 			function updatePage(){
 				if (ajax.readyState == 4) {
