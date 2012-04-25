@@ -93,21 +93,7 @@ function showAddNumsForm($group_id, $data)
 	<br/>Добавление данных в группу <font color="green"><b>"$groupName"</b></font><br/>
 	<br/>
 EOF;
-	if (existsNums($groupName, $data))
-	{
-		//выводим кнопку для перезаписи
-		echo  <<< EOF
-		<div id="addingResult"><font color="red"><b>Внимание: </b></font>данные в группе<font color="green"><b>"$groupName"</b></font> за <b>$data</b> уже существуют! <br/>
-		Если вы действительно хотите перезаписать данные, то нажмите на кнопку
-		<input type="button" value="Перезаписать" onClick="sendNums($group_id, true);"></div>
-EOF;
-	}
-	else
-	{	
-		echo <<< EOF
-		<div id="addingResult"></div>
-EOF;
-	}
+	
 	//выводим шабку таблицы с названием полей
 	echo <<<EOF
 	<table border=1px cellspacing=0 id="numsTable">
@@ -131,6 +117,8 @@ EOF;
 		for ($i = 0; $i < $countFields; $i++)
 		{
 			$val = mysql_result($res, 0, $fieldNames[$i]);
+			if (isFieldTypeInt($group_id))
+				$val = (int)$val;
 			echo <<<EOF
 			<td><input type="text" size="10" id="$fieldNames[$i]" value = "$val"></td>
 EOF;
@@ -152,7 +140,21 @@ EOF;
 	</table>
 	<input type="button" value="Сохранить" onClick="sendNums($group_id);">
 EOF;
-
+if (existsNums($groupName, $data))
+	{
+		//выводим кнопку для перезаписи
+		echo  <<< EOF
+		<div id="addingResult"><font color="red"><b>Внимание: </b></font>данные в группе<font color="green"><b>"$groupName"</b></font> за <b>$data</b> уже существуют! <br/>
+		Если вы действительно хотите перезаписать данные, то нажмите на кнопку<br/>
+		<input type="button" value="Перезаписать" onClick="sendNums($group_id, true);"></div>
+EOF;
+	}
+	else
+	{	
+		echo <<< EOF
+		<div id="addingResult"></div>
+EOF;
+	}
 
 }
 
@@ -161,6 +163,17 @@ function checkFormAndSaveNums($group_id)
 {
 	$groupName = getGroupNameById($group_id);
 	$fieldNames=getGroupFieldNames($groupName);	
+	$data = $_POST['data'];
+	if (existsNums($groupName, $_POST['data']) && !isset($_POST['update']))
+	{
+		//выводим кнопку для перезаписи
+		echo  <<< EOF
+		<div id="addingResult"><font color="red"><b>Внимание: </b></font>данные в группе<font color="green"><b>"$groupName"</b></font> за <b>$data</b> уже существуют! <br/>
+		Если вы действительно хотите перезаписать данные, то нажмите на кнопку
+		<input type="button" value="Перезаписать" onClick="sendNums($group_id, true);"></div>
+EOF;
+		return;
+	}
 	$countFields = count($fieldNames);
 	$userName = $_COOKIE['sanLogin'];
 	$script=$_SERVER['SCRIPT_NAME'];
@@ -169,9 +182,10 @@ function checkFormAndSaveNums($group_id)
 	$names = "";
 	$values = "";
 	$set = "";
+	
 	if (isset($_POST['data']) && isDate($_POST['data']))
 	{
-		$name = "`author`, `day`";
+		$names = "`author`, `day`";
 		$values = "'$userName', '".$_POST['data']."'";
 		$set = "`author`='$userName'";
 	}
@@ -180,9 +194,7 @@ function checkFormAndSaveNums($group_id)
 		echo $errMsg."Дата введена неправильно, либо не введена вообще! Проверьте правильность ввода.";
 		return;
 	}	
-	$data = $_POST['data'];
 	$isFloat = !isFieldTypeInt($group_id);
-	echo isFieldTypeInt($group_id);
 	for ($k = 0; $k < $countFields; $k++)
 	{
 		$v = $fieldNames[$k];
@@ -195,13 +207,13 @@ function checkFormAndSaveNums($group_id)
 		else
 		{
 			$foundErrors = true;
-			$errMsg .= "Данные в поле <b>$v</b> введены неверно, либо не являются числом! Проверьте правильность ввода. <br/>";
+			$errMsg .= "Данные  ".$_POST[$v]." в поле <b>$v</b> введены неверно, либо не являются числом! Проверьте правильность ввода. <br/>";
 		}		
 	}
 	if (!$isFloat)
-		$errMsg .= "Числа должны быть целого типа! И не должны начинаться с 0";
+		$errMsg .= "Числа должны быть целого типа! И не должны начинаться с 0!";
 	else
-		$errMsg .= "Числа должны быть введены в формате yxxx.xx, где x - цифра от 0 до 9, y - цифра от 1 до 9";
+		$errMsg .= "Числа должны быть введены в формате xxxx.yy, где x - цифра от 0 до 9, y - цифра от 0 до 9, необязательная часть";
 	$errMsg .= "</br>";
 			
 	if ($foundErrors)
@@ -212,30 +224,18 @@ function checkFormAndSaveNums($group_id)
 	
 	if (existsNums($groupName, $_POST['data']))
 	{
-		//проверяем, нажал ли пользователь кнопку перезаписи
-		if (isset($_POST['update']))
-		{
-			//обновляем данные
-			$query = "UPDATE `group_$groupName` SET $set WHERE day='$data'";
-			mysql_query($query) or printBDError("Ошибка при обновлении данных в таблице group_$groupName");
-			echo <<<EOF
-			Данные в группе <font color="green"><b>$groupName</b></font> за <b>$data</b> успешно обновлены!
+		//обновляем данные
+		$query = "UPDATE `group_$groupName` SET $set WHERE day='$data'";
+		mysql_query($query) or printBDError("Ошибка при обновлении данных в таблице group_$groupName");
+		echo <<<EOF
+		Данные в группе <font color="green"><b>$groupName</b></font> за <b>$data</b> успешно обновлены!
 EOF;
-		}
-		else
-		{	
-			//выводим кнопку для перезаписи
-			echo  <<< EOF
-			<div id="addingResult"><font color="red"><b>Внимание: </b></font>данные в группе<font color="green"><b>"$groupName"</b></font> за <b>$data</b> уже существуют! <br/>
-			Если вы действительно хотите перезаписать данные, то нажмите на кнопку
-			<input type="button" value="Перезаписать" onClick="sendNums($group_id, true);"></div>
-EOF;
-		}
 	}
 	else
 	{	
 		//добавляем данные
 		$query = "INSERT INTO `group_$groupName` ( $names )	VALUES ( $values )";
+		//echo "ddd".$names."ddd";
 		mysql_query($query) or printBDError("Ошибка при добавлении данных в таблицу group_$groupName");
 		echo <<<EOF
 		Данные в группу <font color="green"><b>$groupName</b></font> за <b>$data</b> успешно добавлены!
@@ -266,13 +266,13 @@ function isNum($num, $isFloat)
 {
 	if ($isFloat)
 	{
-		//вещественное, начинающееся не с 0
-		return preg_match("/^[1-9]\d+([.])\d{0,2}$/", $var);
+		//вещественное, начинающееся и с 0
+		return preg_match("/^[0-9]\d*([.]\d{1,2})?$/", $num);
 	}
 	else
 	{
 		//целое, начинающееся не с 0
-		return preg_match("/^[1-9]\d+$/", $num);
+		return preg_match("/^[1-9]\d*$/", $num);
 	}
 }
 
