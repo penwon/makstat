@@ -54,7 +54,6 @@
 					ajax.setRequestHeader("Connection", "close"); 
 				  //Установить функцию для сервера, которая выполнится после его ответа
 				  ajax.onreadystatechange = updatePage;
-alert(params);
 				  //Передать запрос
 				  ajax.send(params);
 				}
@@ -151,7 +150,7 @@ EOF;
 			echo $msg.$errStr;
 			return;
 		}
-		print_r($_POST);
+		//print_r($_POST);
 		$msg = "<font color=\"red\"><b>Ошибки при создании группы: </b></font></br>";	
 		($_POST['coltype']=="integer")?$type="integer":$type="float";
 		//проверяем, есть ли уже группа с таким названием в БД

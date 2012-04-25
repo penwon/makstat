@@ -95,6 +95,13 @@ function checkStr($str){
 	return $str;
 }
 
+//проверяет является ли строка датой
+//return - true, если строка - дата
+function isDate($str){
+	return preg_match("/^\d{4}([-])\d{2}([-])\d{2}$/", $str, $match);
+	//print_r($match);
+}
+
 //функция проверяет, существует ли группа с указанным id_group в базе
 function existGroupById($id_group)
 {
@@ -125,8 +132,10 @@ function showSelectGroupForm()
 {
 	$script=$_SERVER['SCRIPT_NAME'];
 	echo <<<EOF
+	<link rel="stylesheet" type="text/css" href="css/calendar.css"> 
 	<script type="text/javascript" src="js/calendar.js"></script>
 	<script type="text/javascript" src="js/funcs.js"></script>
+	<script type="text/javascript" src="js/savenums.js"></script>
 	<script type="text/javascript">		
 		function updatePage()
 		{
@@ -153,18 +162,6 @@ function showSelectGroupForm()
 					ajax.open("GET", url, true);
 					ajax.onreadystatechange = updatePage;
 					ajax.send(null);
-				}
-			}
-		}
-		
-		function updatePage()
-		{
-			if (ajax.readyState == 4)
-			{
-				if (ajax.status == 200)
-				{
-					var response = ajax.responseText;
-					document.getElementById("result").innerHTML = response;
 				}
 			}
 		}
