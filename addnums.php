@@ -13,6 +13,7 @@
 	if (!$user_id)
 	{
 		printHTMLHead("Добавление данных в группу");
+		echo "<h3>Добавление данных в группу</h3>";
 		$str =<<<EOF
 		Для добавления данных в группу необходимо <a href="login.php">авторизоваться</a>!
 EOF;
@@ -76,6 +77,11 @@ EOF;
 		{
 			//выводим форму для выбора группы, с которой работаем
 			printHTMLHead("Добавление данных в группу");
+			echo <<< EOF
+				<link rel="stylesheet" type="text/css" href="css/calendar.css"> 
+				<script type="text/javascript" src="js/calendar.js"></script>
+				<script type="text/javascript" src="js/savenums.js"></script>
+EOF;
 			showSelectGroupForm();
 			printHTMLFoot();
 		}

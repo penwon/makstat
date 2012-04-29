@@ -180,7 +180,7 @@ EOF;
 			if (!mysql_query($addgroup)){
 				 //если не получилось создать таблицу для группы, 
 				 //то удаляем упоминание о группе из таблицы 'groups'
-				 echo 	$addgroup;		
+				// echo 	$addgroup;		
 				 mysql_query("DELETE FROM `groups` WHERE `groups`.`name` = '$groupName'");	
 				 printBDError("Ошибка создания таблицы для новой группы");
 			}

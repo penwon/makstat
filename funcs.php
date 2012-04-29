@@ -132,10 +132,7 @@ function showSelectGroupForm()
 {
 	$script=$_SERVER['SCRIPT_NAME'];
 	echo <<<EOF
-	<link rel="stylesheet" type="text/css" href="css/calendar.css"> 
-	<script type="text/javascript" src="js/calendar.js"></script>
 	<script type="text/javascript" src="js/funcs.js"></script>
-	<script type="text/javascript" src="js/savenums.js"></script>
 	<script type="text/javascript">		
 		function updatePage()
 		{
