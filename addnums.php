@@ -75,14 +75,16 @@ EOF;
 		}
 		else
 		{
+			showMenu();
 			//выводим форму для выбора группы, с которой работаем
 			printHTMLHead("Добавление данных в группу");
+			echo "<h3>Добавление данных в группу</h3>";
 			echo <<< EOF
 				<link rel="stylesheet" type="text/css" href="css/calendar.css"> 
 				<script type="text/javascript" src="js/calendar.js"></script>
 				<script type="text/javascript" src="js/savenums.js"></script>
 EOF;
-			showSelectGroupForm();
+			showSelectGroupForm($user_id);
 			printHTMLFoot();
 		}
 	}
@@ -204,20 +206,21 @@ EOF;
 	for ($k = 0; $k < $countFields; $k++)
 	{
 		$v = $fieldNames[$k];
-		if (isset($_POST[$v]) && (!empty($_POST[$v])) && isNum($_POST[$v], $isFloat))
+		if (isset($_POST[$v]) && ((!empty($_POST[$v])) || $_POST[$v]== 0) && isNum($_POST[$v], $isFloat))
 		{
 			$names .=", `".$v."`";
 			$values .= ", '".$_POST[$v]."'";	
 			$set .= ", `".$v."`='".$_POST[$v]."'";
 		}
-		else
+		else if (!empty($_POST[$v]))
 		{
 			$foundErrors = true;
 			$errMsg .= "Данные  ".$_POST[$v]." в поле <b>$v</b> введены неверно, либо не являются числом! Проверьте правильность ввода. <br/>";
-		}		
+			
+		}
 	}
 	if (!$isFloat)
-		$errMsg .= "Числа должны быть целого типа! И не должны начинаться с 0!";
+		$errMsg .= "Числа должны быть целого типа!";
 	else
 		$errMsg .= "Числа должны быть введены в формате xxxx.yy, где x - цифра от 0 до 9, y - цифра от 0 до 9, необязательная часть";
 	$errMsg .= "</br>";
@@ -232,6 +235,7 @@ EOF;
 	{
 		//обновляем данные
 		$query = "UPDATE `group_$groupName` SET $set WHERE day='$data'";
+	//	echo $query;
 		mysql_query($query) or printBDError("Ошибка при обновлении данных в таблице group_$groupName");
 		echo <<<EOF
 		Данные в группе <font color="green"><b>$groupName</b></font> за <b>$data</b> успешно обновлены!
@@ -265,21 +269,6 @@ function printGroupNumsByDate($groupName, $data)
 {
 	$query = "SELECT * FROM group_$groupName WHERE day='$day'";
 	$res = mysql_query($query) or printBDError("Ошибка при обращении к таблице group_$groupName");
-}
-
-//return true, если $num  - число
-function isNum($num, $isFloat)
-{
-	if ($isFloat)
-	{
-		//вещественное, начинающееся и с 0
-		return preg_match("/^[0-9]\d*([.]\d{1,2})?$/", $num);
-	}
-	else
-	{
-		//целое, начинающееся не с 0
-		return preg_match("/^[1-9]\d*$/", $num);
-	}
 }
 
 ?>

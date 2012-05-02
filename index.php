@@ -10,11 +10,7 @@
 	selectBD();
 	
 	if (isAuthorised()){
-		$user = $_COOKIE['sanLogin'];
-		echo <<<EOF
-		Вы авторизованы как <b>$user</b> и можете работать с системой.<br/>
-		<a href="exit.php">Выход</a>
-EOF;
+		showMenu();
 	}
 	else{
 		echo <<<EOF

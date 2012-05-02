@@ -85,6 +85,47 @@ function isAdmin(){
 	return false;
 }
 
+function showMenu(){
+	echo <<<EOF
+	<style>
+	 #menu a{
+		 color: #cc3d3c;
+		 //font-weight: bold;
+		 text-decoration: none;
+		 padding:0 5px;
+	 }
+	 #menu a:hover{
+		 color: blue;
+	 }
+	 #menu b{
+		color: green;
+	 }
+	</style>
+	<div id="menu"><hr/>
+EOF;
+	if (isAdmin())
+	{
+		echo <<<EOF
+		Вы вошли как <b>администратор</b>. И можете:
+		<a href="adduser.php">Добавить пользователя</a>
+		<a href="addgroup.php">Добавить группу</a>
+		<a href="editrules.php">Изменить права доступа</a>
+		<a href="reports.php">Сформировать отчеты</a>
+EOF;
+	}
+	else
+	{
+		$userName = checkStr($_COOKIE['sanLogin']);
+		echo <<<EOF
+		Вы вошли как <b>$userName</b> с правами обычного пользователя. И можете:
+EOF;
+	}
+	echo <<<EOF
+	<a href="addnums.php">Добавить данные</a>
+	<a href="exit.php">Выйти из системы</a>
+	<hr/></div>
+EOF;
+}
 //функция удаляет из строки запрещенные символы (не буквы и цифры)
 function checkStr($str){
 	//урезаем строку до 32 символов
@@ -99,7 +140,6 @@ function checkStr($str){
 //return - true, если строка - дата
 function isDate($str){
 	return preg_match("/^\d{4}([-])\d{2}([-])\d{2}$/", $str, $match);
-	//print_r($match);
 }
 
 //функция проверяет, существует ли группа с указанным id_group в базе
@@ -128,7 +168,7 @@ function checkRules($id_user, $id_group)
 }
 
 //Функция выводит форму для выбора группы из списка групп
-function showSelectGroupForm()
+function showSelectGroupForm($user_id)
 {
 	$script=$_SERVER['SCRIPT_NAME'];
 	echo <<<EOF
@@ -171,7 +211,11 @@ EOF;
 	$res = mysql_query($query) or printBDError("Ошибка при обращении к таблице groups");
 	while ($row=mysql_fetch_row($res))
 	{
-		echo "\n<option value=\"$row[0]\">$row[1]</option>";
+		//если у пользователя есть права на работу с этой группой, то выводим её в выпадающий список
+		$query = "SELECT id_rule FROM rules WHERE id_user=$user_id AND id_group={$row[0]}";
+		$rules = mysql_query($query) or printBDError("Ошибка при обращении к таблице rules");
+		if ((mysql_num_rows($rules)>0) ||  ($user_id == 1))
+			echo "\n<option value=\"$row[0]\">$row[1]</option>";
 	}
 	echo <<<EOF
 		</select>
@@ -219,5 +263,20 @@ function isFieldTypeInt($group_id)
 	if ((mysql_num_rows($res)>0) && (mysql_result($res, 0)=="integer"))
 		return true;
 	return false;
+}
+
+//return true, если $num  - число
+function isNum($num, $isFloat)
+{
+	if ($isFloat)
+	{
+		//вещественное, начинающееся и с 0
+		return preg_match("/^(\-)?[0-9]\d*([.]\d{1,2})?$/", $num);
+	}
+	else
+	{
+		//целое, начинающееся не с 0
+		return preg_match("/^(\-)?[0-9]\d*$/", $num);
+	}
 }
 ?>

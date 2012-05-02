@@ -205,12 +205,15 @@ EOF;
 		checkFormAndCreateGroup();	
 		return;
 	}		
-	printHTMLHead("Добавление группы данных");
-	echo "<h3>Добавление группы данных</h3>";
+
 	if (isAdmin()){
+		showMenu();
+		printHTMLHead("Добавление группы данных");
+		echo "<h3>Добавление группы данных</h3>";
 		showAddGroupForm();
 	}
 	else{
+		printHTMLHead("Добавление группы данных");
 		if (isAuthorised()){
 			$userName = $_COOKIE['sanLogin'];
 			$str =<<<EOF

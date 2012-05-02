@@ -120,6 +120,7 @@ EOF;
 		}
 		else{
 			printHTMLHead("Добавление пользователя");
+			showMenu();
 			echo "<b>Добавление пользователя</b><br/>";
 			showAddUserForm();
 			printHTMLFoot();

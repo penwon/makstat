@@ -23,21 +23,18 @@ EOF;
 				printError($str);
 				return;
 			}
+			$month = date("m");
+			$year = date("Y");
+			$from = $year."-".$month."-01";
+			$to = date('Y-m-d');
 			//если была нажата кнопка "показать"
 			if (isset($_POST["show"]))
 			{
-				$month = date("m");
-				$year = date("Y");
-				$from = $year."-".$month."-1";
 				if (isset($_POST["from"]) && isDate($_POST["from"]))
 					$from = $_POST["from"];
-				$month+=1;
-				$to = $year."-".$month."-1";
-				
-				$to = new DateTime($from);
-				$to->modify("+1 month -1 day");
-				$to= $to->format("Y-m-d");
-				
+				//$to = new DateTime($from);
+				//$to->modify("+1 month -1 day");
+				//$to= $to->format("Y-m-d");
 				if (isset($_POST["to"]) && isDate($_POST["to"]))
 					$to = $_POST["to"];	
 				$period = "";
@@ -49,6 +46,7 @@ EOF;
 						case "month": $period = "месяц"; break;
 						case "quarter": $period = "квартал"; break;
 						case "year": $period = "год"; break;
+						case "all": $period = "все"; break;
 						default:
 							$period = "месяц";
 					}
@@ -58,19 +56,21 @@ EOF;
 				showReport($group_id, $from, $to, $period);
 				return;
 			}
-			showReportNavMenu($group_id);
+			showReportNavMenu($group_id, $from, $to);
 			
 		}
 		//если группа не выбрана
 		else
 		{
 			printHTMLHead("Отчеты");
+			showMenu();
+			echo "<h3>Отчеты</h3>";
 			echo <<< EOF
 			<link rel="stylesheet" type="text/css" href="css/calendar.css"> 
 			<script type="text/javascript" src="js/calendar.js"></script>
 			<script type="text/javascript" src="js/reports.js"></script>
 EOF;
-			showSelectGroupForm();
+			showSelectGroupForm(1);
 			printHTMLFoot();
 		}
 	}
@@ -81,14 +81,14 @@ EOF;
 		{
 			$userName = $_COOKIE['sanLogin'];
 			$str =<<<EOF
-			Для создания группы данных необходимо войти как <b>администратор</b>.
+			Для работы с группой данных необходимо войти как <b>администратор</b>.
 			Вы вошли как <b>$username</b>.
 EOF;
 		}
 		else
 		{
 			$str =<<<EOF
-			Для создания группы данных необходимо войти как <b>администратор</b>.
+			Для работы с группой данных необходимо войти как <b>администратор</b>.
 			Пожалуйста, <a href="login.php">авторизуйтесь</a>. 
 EOF;
 			printError($str);
@@ -98,7 +98,7 @@ EOF;
 	closeBDConnection();
 
 
-function showReportNavMenu($group_id)
+function showReportNavMenu($group_id, $from, $to)
 {
 	$groupName = getGroupNameById($group_id);
 	echo <<< EOF
@@ -116,12 +116,13 @@ function showReportNavMenu($group_id)
 		}
 	</style>
 	<form>
-		<i>Отчетный период:</i> с <input type="text" name="from" size="5"  onclick="displayDatePicker('from', false, 'ymd', '-');"/> 
-		&nbsp;&nbsp;по <input type="text" name="to" size="5"  onclick="displayDatePicker('to', false, 'ymd', '-');"/><br/>
+		<i>Выберите интервал:</i> с <input type="text" name="from" size="5"  value="$from" onclick="displayDatePicker('from', false, 'ymd', '-');"/> 
+		&nbsp;&nbsp;по <input type="text" name="to" size="5"  value="$to" onclick="displayDatePicker('to', false, 'ymd', '-');"/><br/>
 		<i>Количество дней в периоде:</i> <a href="#" id="week" onclick="selectPeriod('week');">неделя</a> 
 										<a href="#" id="month" onclick="selectPeriod('month');" class="selected">месяц</a>
 										<a href="#" id="quarter" onclick="selectPeriod('quarter');">квартал</a>
 										<a href="#" id="year" onclick="selectPeriod('year');">год</a>
+										<a href="#" id="all" onclick="selectPeriod('all');">все</a>
 		</br><input type="button" value="Показать" onclick="sendRequest($group_id);"/>
 	</form>
 	<div id="reportResult"></div>
@@ -132,6 +133,7 @@ EOF;
 
 function showReport($group_id, $from, $to, $period)
 {
+	echo "<h4>Данные в интервале с $from по $to. Период - $period.</h4>";
 	if ($from>$to)
 	{
 		echo <<< EOF
@@ -139,16 +141,11 @@ function showReport($group_id, $from, $to, $period)
 EOF;
 		return;
 	}
-	echo "<h4>Данные в интервале с $from по $to. Период - $period.</h4>";
-	$periodSum = array();
-	$daysSumArr = array();
 	$periodsCount = 0;
-	$rowsCount = 0;
 	$groupName = getGroupNameById($group_id);
 	$fieldNames = getGroupFieldNames($groupName);
 	$isIntFlag = isFieldTypeInt($group_id);
 	$countFields = count($fieldNames);
-	//echo $date->format('Y-m-d');
 	$beginDate = new DateTime($from);
 	$endDate = new DateTime($to);
 	
@@ -166,16 +163,17 @@ EOF;
 			break;
 		case "неделя":
 			$diff = $endDate->diff($beginDate);
-			$dayCount = $diff->d; 
+			$dayCount = $diff->days; 
 			$periodsCount = (int)($dayCount/7 + 1);
+			break;
+		case "все":
+			$periodsCount = 1;
 			break;
 		case "месяц":
 		default:
 			$diff = $endDate->diff($beginDate);
 			$periodsCount = $diff->m +1; 
-		//	break;
 	}
-	
 	for ($k = 1; $k <= $periodsCount; $k++)
 	{
 		$begin = $beginDate->format('Y-m-d');
@@ -190,6 +188,8 @@ EOF;
 			case "неделя":
 				$endDate = $beginDate->modify("+6 days");
 				break;
+			case "все":
+				break;
 			case "месяц":
 			default:
 				$endDate = $beginDate->modify("+1 month -1 day");
@@ -202,14 +202,17 @@ EOF;
 		$res = mysql_query($query) or printBDError("Ошибка при обращении к таблице group_$groupName");
 		if (mysql_num_rows($res)>0)
 		{
-			echo "<table cellspacing=\"0px\" style=\"text-align: left;\" border=\"1px\"><tr><th>Дата</th>";
+			echo "<table cellspacing=\"0px\" cellpadding=\"10px\" style=\"text-align: left;\" border=\"1px\"><tr><th>Дата</th>";
+			$rowsCount = 0;
+			$periodSum = array();
+			$daysSumArr = array();
 			// выводим шапку
 			for ($i = 0; $i < $countFields; $i++)
 			{
 				$periodSum[$fieldNames[$i]] = 0;
 				echo "<th>".$fieldNames[$i]."</th>";
 			}
-			echo "<th>Сумма за день</th>";
+			echo "<th>Итоги</th>";
 			echo "</tr>";
 			
 			//выводим значения полей
@@ -232,7 +235,7 @@ EOF;
 				echo "<td>$daySum</td>";
 				echo "</tr>";
 			}
-			echo "<tr><td>с <b>$from</b> <br/>по <b>$to</td>";
+			echo "<tr><td>Итоги</td>";
 			
 			//считаем общие суммы 
 			$allSum = 0;
@@ -241,19 +244,30 @@ EOF;
 				echo "<td>".$periodSum[$fieldNames[$i]]."</td>";
 				$allSum+=$periodSum[$fieldNames[$i]];
 			}
-			for ($i = 0; $i < $rowsCount; $i++)
+			/*for ($i = 0; $i < $rowsCount; $i++)
 			{
 				$allSum+=$daysSumArr[$i];
-			}
+			}*/
 			//if ($isIntFlag)
 			//	$allSum = (int)$allSum;
-			echo "<td>Всего: $allSum</td>";
-
-			echo "</tr>";
-			echo "</table>";
+			echo "<td>$allSum</td></tr>";
+			echo "<tr><td>График</td>";
+			
+			for ($i = 0; $i < $countFields; $i++)
+			{
+				$field = $fieldNames[$i];
+				echo<<<EOF
+				<td align="center"><input type="checkbox" name="fields" value="$field" onclick=addToGraph(this);></td>
+EOF;
+			}
+			
+			echo<<<EOF
+			  <td><input type="button" value="Нарисовать" onclick="drawGraph($group_id, '$begin', '$end');"/></td></tr>
+			</table><br/>
+EOF;
 		}
 		else
-			echo "Данных в заданном интервале нет...";
+			echo "Данных в заданном интервале нет...<br/></br>";
 		$beginDate = $endDate->modify("+1 day");
 	}	
 }

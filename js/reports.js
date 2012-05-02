@@ -1,5 +1,21 @@
 var period = "month";
 var selectedPeriodId = "month";
+var fieldsForGraph = "";
+
+function addToGraph(checkbox)
+{
+	if (checkbox.checked == true)
+		fieldsForGraph+="&"+checkbox.value + "=true";
+	else
+		fieldsForGraph = fieldsForGraph.replace(new RegExp("&"+checkbox.value+"=true",'g'),"");
+}
+
+function drawGraph(group_id, from, to)
+{
+	var url = 'graphs.php?group_id='+group_id+fieldsForGraph+"&from="+from+"&to="+to;
+	url = encodeURI(url);
+	window.open(url);
+}
 
 function selectPeriod(selectedPeriodId)
 {
@@ -23,6 +39,7 @@ function showReportResult()
 function sendRequest(groupId)
 {
 	var params = "show=true&";
+	fieldsForGraph = "";
 	ajax=getAjax();
 	if (ajax!=null)
 	{
