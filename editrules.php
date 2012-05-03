@@ -21,7 +21,7 @@
 			$res = mysql_query($query) or printBDError("Ошибка при обращении к таблице users");
 			if (mysql_num_rows($res)<1)
 				return;
-			if (isset($_GET['save']))
+			if (isset($_POST['save']))
 				saveRules($_GET['user_id']);
 			else
 				showGroupsCheckBoxes($_GET['user_id']);
@@ -57,7 +57,7 @@ EOF;
 		else
 		{
 			$str =<<<EOF
-			Для работы редактирование прав доступа необходимо войти как <b>администратор</b>.
+			Для редактирования прав доступа необходимо войти как <b>администратор</b>.
 			Пожалуйста, <a href="login.php">авторизуйтесь</a>. 
 EOF;
 			printError($str);
@@ -73,6 +73,7 @@ function showSelectUserForm()
 	$script=$_SERVER['SCRIPT_NAME'];
 	echo <<<EOF
 	<script type="text/javascript" src="js/funcs.js"></script>
+	<script type="text/javascript" src="js/editrules.js"></script>
 	<script type="text/javascript">		
 		function updatePage()
 		{
@@ -135,24 +136,50 @@ function showGroupsCheckBoxes($user_id)
 			//border: 10px;
 		}
 	</style>
-	<br><table border="1px" cellspacing="0" cellpadding="5" id="rulesTable">
+	<br><form name="formName"><table border="1px" cellspacing="0" cellpadding="5" id="rulesTable">
 	<tr><th>Группа данных</th><th>Права на запись</th></tr>
 EOF;
 	while ($row = mysql_fetch_row($res))
 	{
+		$checked = checkRules($user_id, $row[0])?"checked":"";
 		echo <<<EOF
-		<tr><td>$row[1]</td><td class="check"><input type="checkbox" name="groups" value="$row[0]"></td></tr>
+		<tr><td>$row[1]</td><td class="check"><input type="checkbox" name="fieldRules" value="$row[0]" $checked></td></tr>
 EOF;
 	}
 	echo <<<EOF
-	</table>
-	<input type="button" value="Сохранить">
+	</table></form>
+	<input type="button" value="Сохранить" onClick="sendRules($user_id);">
+	<div id="saveResult"></div>
 EOF;
 	
 }
 
+
+//сохраняет права пользователя на доступ к группам данных
 function saveRules($user_id)
 {
-	
+	$changeFlag = false;
+	foreach ($_POST as $key => $value)
+	{
+		if (isNum($key, false) && existGroupById($key))
+		{
+			if (($value=="true") && !checkRules($user_id, $key))
+			{
+				//добавляем права
+				$query = "INSERT INTO `rules`(`id_rule`, `id_user`, `id_group`) VALUES (0,$user_id, $key)";
+				mysql_query($query) or printBDError("Ошибка при добавлении данных в таблицу rules");
+				$changeFlag = true;
+			}
+			if (($value=="false") && checkRules($user_id, $key))
+			{
+				//удаляем права
+				$query = "DELETE FROM `rules` WHERE `id_user`= $user_id AND `id_group` = $key";
+				mysql_query($query) or printBDError("Ошибка при удалении данных из таблицы rules");
+				$changeFlag = true;
+			}
+		}
+	}
+	if ($changeFlag)
+		echo "Права для пользователя успешно изменены!";
 }
 ?>
